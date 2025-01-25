@@ -1,31 +1,24 @@
-﻿using CarlElias.Domain.Services;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System.Text;
 using NSec.Cryptography;
+using Microsoft.Extensions.Logging;
+using CarlElias.Application.Interfaces.Services;
 
 namespace CarlElias.Application.Services
 {
-    public class NSecCryptographyService : ICryptographyService
+    public class NSecCryptographyService(ILogger<NSecCryptographyService> logger) : ICryptographyService
     {
-        public async Task<bool> VerifyRequest(string signatureHeader, string timestampHeader, string messageBody)
+        public bool VerifyRequest(string signatureHeader, string timestampHeader, string messageBody)
         {
-            var verifyResult = true;
-
             var publicKeyHex = Environment.GetEnvironmentVariable("DiscordPublicKey") ?? "";
+
+            if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(timestampHeader) || string.IsNullOrEmpty(messageBody) || string.IsNullOrEmpty(publicKeyHex))
+            {
+                return false;
+            }
 
             var publicKeyBytes = Convert.FromHexString(publicKeyHex);
             var publicKey = PublicKey.Import(SignatureAlgorithm.Ed25519, publicKeyBytes, KeyBlobFormat.RawPublicKey);
-
-            //var signatureHeader = request.Headers["X-Signature-Ed25519"];
-            //var timestampHeader = request.Headers["X-Signature-Timestamp"];
-
-            //// In case request body has already been read seek to beginning
-            //var messageBody = await new StreamReader(request.Body).ReadToEndAsync();
-
-            if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(timestampHeader) || string.IsNullOrEmpty(messageBody))
-            {
-                throw new UnauthorizedAccessException("invalid request signature");
-            }
 
             var toVerifyString = timestampHeader + messageBody;
             var message = Encoding.UTF8.GetBytes(toVerifyString);
@@ -39,15 +32,16 @@ namespace CarlElias.Application.Services
                 // Verify the signature
                 if (!algorithm.Verify(publicKey, message, signatureBytes))
                 {
-                    throw new UnauthorizedAccessException("invalid request signature");
+                    return false;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new UnauthorizedAccessException("invalid request signature");
+                logger.LogError(e, "Error verifying request");
+                return false;
             }
 
-            return verifyResult;
+            return true;
         }
     }
 }

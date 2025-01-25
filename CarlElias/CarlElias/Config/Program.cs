@@ -1,5 +1,5 @@
+using CarlElias.Application.Interfaces.Services;
 using CarlElias.Application.Services;
-using CarlElias.Domain.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

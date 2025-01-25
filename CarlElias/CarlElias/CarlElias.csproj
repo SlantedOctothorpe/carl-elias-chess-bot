@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Domain\Persistence\" />
+    <Folder Include="Domain\Services\" />
     <Folder Include="Infrastructure\Persistence\" />
   </ItemGroup>
 </Project>

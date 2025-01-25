@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CarlElias.Domain.Services
+namespace CarlElias.Application.Interfaces.Services
 {
     public interface ICryptographyService
     {
-        Task<bool> VerifyRequest(string signatureHeader, string timestampHeader, string messageBody);
+        bool VerifyRequest(string signatureHeader, string timestampHeader, string messageBody);
     }
 }
